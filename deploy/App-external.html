@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MilestoneKanbanBurnDown</title>
+
+    <script type="text/javascript" src="https://rally1.rallydev.com/apps/2.0/sdk.js"></script>
+
+    <script type="text/javascript">
+        Rally.onReady(function () {
+                Ext.define("Calculator",{extend:"Rally.data.lookback.calculator.TimeSeriesCalculator"});
+                Ext.define("CustomApp",{extend:"Rally.app.App",componentCls:"app",launch:function(){this.add({xtype:"rallymilestonecombobox",width:200,height:22,context:this.getContext(),listeners:{ready:this._milestoneAvailable,select:this._milestoneSelected,scope:this}})},_milestoneAvailable:function(){Ext.create("Rally.data.wsapi.Store",{model:"TypeDefinition",fetch:["TypePath"],filters:[{property:"Parent.Name",value:"Portfolio Item"},{property:"Ordinal",value:0}]}).load().then({success:function(records){this.piType=records[0].get("TypePath"),this._milestoneSelected()},scope:this})},_milestoneSelected:function(){Ext.create("Rally.data.wsapi.Store",{model:this.piType,fetch:["ObjectID","Project","Name","PreliminaryEstimate","ActualStartDate","PlannedEndDate"],filters:[{property:"Milestones",operator:"contains",value:this.down("rallymilestonecombobox").getValue()}],context:{project:null},limit:1/0}).load().then({success:function(piRecords){this.piRecords=piRecords,this._showChart()},scope:this})},_showChart:function(){this.down("rallychart")&&this.down("rallychart").destroy(),this.add({xtype:"rallychart",storeType:"Rally.data.lookback.SnapshotStore",storeConfig:this._getStoreConfig(),calculatorType:"Calculator",calculatorConfig:{stateFieldName:"c_KanbanState",doneStateFieldValues:["Accepted"]},chartConfig:this._getChartConfig()})}});
+
+            Rally.launchApp('CustomApp', {
+                name:"MilestoneKanbanBurnDown",
+	            parentRepos:""
+            });
+
+        });
+    </script>
+
+
+    <style type="text/css">
+        
+    </style>
+</head>
+<body>
+</body>
+</html>
