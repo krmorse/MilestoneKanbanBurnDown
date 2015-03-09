@@ -1,3 +1,8 @@
+Ext.define('Rally.data.lookback.SnapshotRestProxyOverride', {
+    override: 'Rally.data.lookback.SnapshotRestProxy', 
+    timeout: 300000
+});
+
 Ext.define('CustomApp', {
     extend: 'Rally.app.App',
     componentCls: 'app',
@@ -81,5 +86,72 @@ Ext.define('CustomApp', {
             },
             chartConfig: this._getChartConfig()
         });
+    },
+
+    _getChartConfig: function() {
+        return {
+            chart: {
+                defaultSeriesType: 'area',
+                zoomType: 'xy'
+            },
+            title: {
+                text: 'PI Burnup'
+            },
+            xAxis: {
+                categories: [],
+                tickmarkPlacement: 'on',
+                tickInterval: 5,
+                title: {
+                    text: 'Date',
+                    margin: 10
+                }
+            },
+            yAxis: [
+                {
+                    title: {
+                        text: 'Points'
+                    }
+                }
+            ],
+            tooltip: {
+                formatter: function() {
+                    return '' + this.x + '<br />' + this.series.name + ': ' + this.y;
+                }
+            },
+            plotOptions: {
+                series: {
+                    marker: {
+                        enabled: false,
+                        states: {
+                            hover: {
+                                enabled: true
+                            }
+                        }
+                    },
+                    groupPadding: 0.01
+                },
+                column: {
+                    stacking: null,
+                    shadow: false
+                }
+            }
+        };
+    },
+
+    _getStoreConfig: function() {
+         return {
+            find: {
+                _TypeHierarchy: { '$in': [ 'HierarchicalRequirement', 'Defect'] },
+                _ItemHierarchy: { '$in': _.invoke(this.piRecords, 'getId')},
+                Children: null,
+                _ProjectHierarchy: this.getContext().getProject().ObjectID
+            },
+            fetch: ['c_KanbanState', 'PlanEstimate'],
+            sort: {
+                _ValidFrom: 1
+            },
+            context: this.getContext().getDataContext(),
+            limit: Infinity
+        };
     }
 });
